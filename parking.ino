@@ -1,50 +1,50 @@
 #include <SPI.h>
 #include <Ethernet.h>
 
-byte mac[] = { 0xE2, 0x65, 0xA3, 0xEF, 0xF5, 0x01 }; // Мак-адрес Ethernet
-IPAddress ip(192, 168, 10, 7); // IP-адрес Arduino
-byte gateway[] = { 192, 168, 10, 1 }; // IP-адрес шлюза
-byte subnet[] = { 255, 255, 255, 0 }; // Маска подсети
+byte mac[] = { 0xE2, 0x65, 0xA3, 0xEF, 0xF5, 0x01 }; // Ethernet MAC address
+IPAddress ip(192, 168, 10, 7); // Arduino IP address
+byte gateway[] = { 192, 168, 10, 1 }; // Gateway IP address
+byte subnet[] = { 255, 255, 255, 0 }; // Subnet mask
 
 EthernetServer server(80);
 
 const int numSensors = 16;
 const int ID = 1;
-const int sensorPins[numSensors] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 14, 15, 16, 17, 18, 19}; // с 0 по 9 (0, 1, 2, 3, 4, 5, 6, 7, 8, 9) Цифровые А0 по А5-(14, 15, 16, 17, 18, 19)
+const int sensorPins[numSensors] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 14, 15, 16, 17, 18, 19}; // from 0 to 9 (0, 1, 2, 3, 4, 5, 6, 7, 8, 9) Digital A0 to A5-(14, 15, 16, 17, 18, 19)
 int activatedSensors = 0;
 
-// Переменные и константы для антидребезга
-const int debounceDelay = 500; // Время антидребезга в миллисекундах
+// Variables and constants for debounce
+const int debounceDelay = 500; // Debounce time in milliseconds
 unsigned long lastDebounceTime[numSensors] = {0};
 bool sensorState[numSensors] = {HIGH};
 
 void setup() {
-digitalWrite(0, HIGH);
-digitalWrite(1, HIGH);  
-digitalWrite(2, HIGH);
-digitalWrite(3, HIGH);
-digitalWrite(4, HIGH); // перед использованием пина отреж дорожку на ethernet модуле
-digitalWrite(5, HIGH);
-digitalWrite(6, HIGH);
-digitalWrite(7, HIGH);
-digitalWrite(8, HIGH);
-digitalWrite(9, HIGH);
-digitalWrite(14, HIGH);
-digitalWrite(15, HIGH);
-digitalWrite(16, HIGH);
-digitalWrite(17, HIGH);
-digitalWrite(18, HIGH);
-digitalWrite(19, HIGH);
-
-  // start the Ethernet connection and the server:
+  pinMode(0, OUTPUT); 
+  pinMode(1, OUTPUT); 
+  pinMode(2, OUTPUT); 
+  pinMode(3, OUTPUT); 
+  pinMode(4, OUTPUT); // Cut the trace on the ethernet module before using the pin
+  pinMode(5, OUTPUT); 
+  pinMode(6, OUTPUT); 
+  pinMode(7, OUTPUT); 
+  pinMode(8, OUTPUT); 
+  pinMode(9, OUTPUT); 
+  pinMode(14, OUTPUT); 
+  pinMode(15, OUTPUT); 
+  pinMode(16, OUTPUT); 
+  pinMode(17, OUTPUT); 
+  pinMode(18, OUTPUT); 
+  pinMode(19, OUTPUT); 
+  
+  // Start the Ethernet connection and the server
   Ethernet.begin(mac, ip, gateway, subnet);
-
-  // start the server
+  // Start the server
   server.begin();
 }
 
 void loop() {
   activatedSensors = 0;
+  
   for (int i = 0; i < numSensors; i++) {
     int sensorReading = digitalRead(sensorPins[i]);
     
@@ -63,7 +63,6 @@ void loop() {
   
   EthernetClient client = server.available();
   if (client) {
-    
     bool currentLineIsBlank = true;
     while (client.connected()) {
       if (client.available()) {
@@ -84,7 +83,7 @@ void loop() {
           client.println("</head>");
           client.println("<body>");
           client.println("ID: " + String(ID));
-          client.println("Busy Parks: " + String(activatedSensors) + " of " + String(numSensors)); // Вывод активированных датчиков
+          client.println("Busy Parks: " + String(activatedSensors) + " of " + String(numSensors)); // Output activated sensors
           client.println("</body>");
           client.println("</html>");
           break;
@@ -98,9 +97,7 @@ void loop() {
     }
     delay(1);
     client.stop();
-  
   }
 
-   delay(1000); // Пауза между обновлениями в миллисекундах
-  
+  delay(1000); // Pause between updates in milliseconds
 }
