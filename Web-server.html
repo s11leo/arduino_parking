@@ -30,15 +30,15 @@ function updateData() {
   const existingCars = parseInt($('#existingCars').val());
   
   $.get(url1, function(data1) {
-    // Отображаем полученные данные Arduino 1
+    // Display data received from Arduino 1
     $('#arduino1Data').html(data1);
   })
   .fail(function(error) {
     console.error('Error:', error);
   });
   
-    $.get(url2, function(data2) {
-    // Отображаем полученные данные Arduino 2
+  $.get(url2, function(data2) {
+    // Display data received from Arduino 2
     $('#arduino2Data').html(data2);
   })
   .fail(function(error) {
@@ -46,7 +46,7 @@ function updateData() {
   });
   
   $.get(url3, function(data3) {
-    // Отображаем полученные данные Arduino 3
+    // Display data received from Arduino 3
     $('#arduino3Data').html(data3);
   })
   .fail(function(error) {
@@ -54,7 +54,7 @@ function updateData() {
   });
   
   $.get(url4, function(data4) {
-    // Отображаем полученные данные Arduino 4
+    // Display data received from Arduino 4
     $('#arduino4Data').html(data4);
   })
   .fail(function(error) {
@@ -62,46 +62,46 @@ function updateData() {
   });
   
   $.get(url1, function(data1) {
-    // Парсим числа из данных Arduino 1
+    // Parse numbers from data received from Arduino 1
     const match1 = data1.match(/Busy Parks: (\d+) of 16/);
     
     $.get(url2, function(data2) {
-		// Парсим числа из данных Arduino 2
-		const match2 = data2.match(/Busy Parks: (\d+) of 16/);
-	  
-		$.get(url3, function(data3) {
-			// Парсим числа из данных Arduino 3
-			const match3 = data3.match(/Total cars in the territory: (\d+)/);
-		
-			$.get(url4, function(data4) {
-				// Парсим числа из данных Arduino 4
-				const match4 = data4.match(/Total cars in the territory: (\d+)/);
+      // Parse numbers from data received from Arduino 2
+      const match2 = data2.match(/Busy Parks: (\d+) of 16/);
       
-      // Инициализируем сумму свободных мест
-      let totalEmptyParks = 0;
-
-      // Проверка данных от Arduino
-      if (match1 && match2 && match3 && match4) {
-        const emptyParks1 = parseInt(match1[1]);
-        const emptyParks2 = parseInt(match2[1]);
-		const carsInKpp1 = parseInt(match3[1]);
-		const carsInKpp2 = parseInt(match4[1]);
-
-        // Складываем свободные места
-        totalEmptyParks = 92 - existingCars - carsInKpp1 - carsInKpp2 + emptyParks1 + emptyParks2;
-
-        // Отображаем общее количество свободных мест
-        $('#totalEmptyParks').html(`Total Empty Free Parks: ${totalEmptyParks}`);
-      } else {
-        // Если данные не были извлечены, отображаем сообщение об ошибке
-        $('#totalEmptyParks').html('Error: Data format mismatch');
-      }
-		}).fail(function(error4) {
-		  console.error('Error from Arduino 4:', error4);
-		});
-	  }).fail(function(error3) {
-	    console.error('Error from Arduino 3:', error3);
-	  });
+      $.get(url3, function(data3) {
+        // Parse numbers from data received from Arduino 3
+        const match3 = data3.match(/Total cars in the territory: (\d+)/);
+        
+        $.get(url4, function(data4) {
+          // Parse numbers from data received from Arduino 4
+          const match4 = data4.match(/Total cars in the territory: (\d+)/);
+          
+          // Initialize the total empty parks count
+          let totalEmptyParks = 0;
+          
+          // Check Arduino data
+          if (match1 && match2 && match3 && match4) {
+            const emptyParks1 = parseInt(match1[1]);
+            const emptyParks2 = parseInt(match2[1]);
+            const carsInKpp1 = parseInt(match3[1]);
+            const carsInKpp2 = parseInt(match4[1]);
+            
+            // Calculate total empty parks
+            totalEmptyParks = 92 - existingCars - carsInKpp1 - carsInKpp2 + emptyParks1 + emptyParks2;
+            
+            // Display the total count of empty parks
+            $('#totalEmptyParks').html(`Total Empty Free Parks: ${totalEmptyParks}`);
+          } else {
+            // If data was not extracted, display an error message
+            $('#totalEmptyParks').html('Error: Data format mismatch');
+          }
+        }).fail(function(error4) {
+          console.error('Error from Arduino 4:', error4);
+        });
+      }).fail(function(error3) {
+        console.error('Error from Arduino 3:', error3);
+      });
     }).fail(function(error2) {
       console.error('Error from Arduino 2:', error2);
     });
@@ -111,12 +111,12 @@ function updateData() {
 }
 
 $(document).ready(function() {
-  // Обработка события нажатия на кнопку Update
+  // Handle the click event on the Update button
   $('#updateButton').click(function() {
     updateData();
   });
 
-  // Инициализация обновления данных с интервалом
+  // Initialize data updates with interval
   updateData();
   setInterval(updateData, 2000);
 });
