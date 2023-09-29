@@ -1,28 +1,28 @@
 #include <SPI.h>
 #include <Ethernet.h>
 
-byte mac[] = { 0xE2, 0x65, 0xA3, 0xEF, 0xF5, 0x11 }; // Мак-адрес Ethernet
-IPAddress ip(192, 168, 10, 6); // IP-адрес Arduino
-byte gateway[] = { 192, 168, 10, 1 }; // IP-адрес шлюза
-byte subnet[] = { 255, 255, 255, 0 }; // Маска подсети
+byte mac[] = { 0xE2, 0x65, 0xA3, 0xEF, 0xF5, 0x11 }; // Ethernet MAC address
+IPAddress ip(192, 168, 10, 6); // Arduino IP address
+byte gateway[] = { 192, 168, 10, 1 }; // Gateway IP address
+byte subnet[] = { 255, 255, 255, 0 }; // Subnet mask
 
 EthernetServer server(80);
 
 const int ID = 3;
-const int sensorPin1 = 2; // Пин для первого датчика въезд
-const int sensorPin2 = 3; // Пин для второго датчика въезд
-//const int sensorPin3 = 4; // Пин для первого датчика выезд
-//const int sensorPin4 = 5; // Пин для второго датчика выезд
-const int buttonPin = 6;  // Пин для кнопки
-const int relayPin = 7;   // Пин для реле
+const int sensorPin1 = 2; // Pin for the first entrance sensor
+const int sensorPin2 = 3; // Pin for the second entrance sensor
+// const int sensorPin3 = 4; // Pin for the first exit sensor
+// const int sensorPin4 = 5; // Pin for the second exit sensor
+const int buttonPin = 6; // Pin for the button
+const int relayPin = 7; // Pin for the relay
 
-int triggerCount1 = 0; // Счетчик сработок датчиков въезд
-int triggerCount2 = 0; // Счетчик сработок датчиков выезд
+int triggerCount1 = 0; // Entrance sensor trigger count
+int triggerCount2 = 0; // Exit sensor trigger count
 
 bool sensor1Active = false;
 bool sensor2Active = false;
-//bool sensor3Active = false;
-//bool sensor4Active = false;
+// bool sensor3Active = false;
+// bool sensor4Active = false;
 
 unsigned long lastSensor1ChangeTime = 0;
 unsigned long lastSensor2ChangeTime = 0;
@@ -31,15 +31,15 @@ void checkEthernetConnection();
 void handleButtonPress();
 
 unsigned long lastEthernetCheckTime = 0;
-const unsigned long ethernetCheckInterval = 60000; // Период проверки сети в миллисекундах (60 секунд)
+const unsigned long ethernetCheckInterval = 60000; // Network check interval in milliseconds (60 seconds)
 
 void setup() {
-  digitalWrite(2, HIGH); 
+  digitalWrite(2, HIGH);
   digitalWrite(3, HIGH);
-//  digitalWrite(4, HIGH);
-//  digitalWrite(5, HIGH);
-  pinMode(buttonPin, INPUT_PULLUP);  // Устанавливаем пин кнопки в режим входа с внутренним подтягивающим резистором
-  pinMode(relayPin, OUTPUT);  // Устанавливаем пин реле в режим вывода
+  // digitalWrite(4, HIGH);
+  // digitalWrite(5, HIGH);
+  pinMode(buttonPin, INPUT_PULLUP); // Set button pin to input mode with internal pull-up resistor
+  pinMode(relayPin, OUTPUT); // Set relay pin to output mode
 
   Ethernet.begin(mac, ip, gateway, subnet);
 
@@ -55,10 +55,10 @@ void loop() {
   static unsigned long lastActivationTime = 0;
   const unsigned long timeout = 5000;
 
-  // Проверка сработки датчиков въезда
+  // Check entrance sensors
   if (state1 == LOW && !sensor1Active) {
     sensor1Active = true;
-    lastActivationTime = millis(); // Запоминаем время активации
+    lastActivationTime = millis(); // Record activation time
   }
 
   if (sensor1Active && state2 == LOW) {
@@ -73,10 +73,10 @@ void loop() {
     sensor2Active = false;
   }
 
-    // Проверка сработки датчиков выезда
+  // Check exit sensors
   if (state2 == LOW && !sensor2Active) {
     sensor2Active = true;
-    lastActivationTime = millis(); // Запоминаем время активации
+    lastActivationTime = millis(); // Record activation time
   }
 
   if (sensor2Active && state1 == LOW) {
@@ -90,7 +90,7 @@ void loop() {
     sensor1Active = false;
     sensor2Active = false;
   }
-int totalTriggerCount = triggerCount1 + triggerCount2;
+  int totalTriggerCount = triggerCount1 + triggerCount2;
 
   EthernetClient client = server.available();
   if (client) {
@@ -114,9 +114,9 @@ int totalTriggerCount = triggerCount1 + triggerCount2;
           client.println("</head>");
           client.println("<body>");
           client.println("ID: " + String(ID));
-          client.println("Cars entered: " + String(triggerCount1)); // Сработки датчика въезда
-          client.println("Cars left: " + String(triggerCount2)); // Сработки датчика выезда
-          client.println("Total cars in the territory: " + String(totalTriggerCount)); // Сумма сработок всех датчиков
+          client.println("Cars entered: " + String(triggerCount1)); // Entrance sensor triggers
+          client.println("Cars left: " + String(triggerCount2)); // Exit sensor triggers
+          client.println("Total cars in the territory: " + String(totalTriggerCount)); // Sum of all sensor triggers
           client.println("</body>");
           client.println("</html>");
           break;
@@ -133,10 +133,9 @@ int totalTriggerCount = triggerCount1 + triggerCount2;
   }
 
   delay(1000);
-
 }
 
-// Проверка состояния сетевого соединения и перезапуск Ethernet-модуля в случае пропажи сетевого соединения
+// Check network connection status and restart Ethernet module if connection is lost
 void checkEthernetConnection() {
   unsigned long currentMillis = millis();
 
@@ -150,12 +149,12 @@ void checkEthernetConnection() {
   }
 }
 
-// Обработка нажатия кнопки и управление реле
+// Handle button press and control the relay
 void handleButtonPress() {
-  static bool buttonState = HIGH; // Текущее состояние кнопки
-  static bool lastButtonState = HIGH; // Предыдущее состояние кнопки
+  static bool buttonState = HIGH; // Current button state
+  static bool lastButtonState = HIGH; // Previous button state
   static unsigned long lastDebounceTime = 0;
-  const int debounceDelay = 500; // Задержка антидребезга в миллисекундах
+  const int debounceDelay = 500; // Debounce delay in milliseconds
 
   int currentButtonState = digitalRead(buttonPin);
 
@@ -166,10 +165,10 @@ void handleButtonPress() {
   if ((millis() - lastDebounceTime) > debounceDelay) {
     if (currentButtonState != buttonState) {
       buttonState = currentButtonState;
-      
+
       if (buttonState == LOW) {
-        // Кнопка нажата
-        digitalWrite(relayPin, !digitalRead(relayPin)); // Инвертируем состояние реле
+        // Button is pressed
+        digitalWrite(relayPin, !digitalRead(relayPin)); // Toggle relay state
       }
     }
   }
